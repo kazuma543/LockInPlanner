@@ -4,7 +4,7 @@ from .models import Week
 from .serialisers import WeekSerializer
 # Create your views here.
 
-class WeekViewSet(viewsets.ReadOnlyModelViewSet):
+class WeekViewSet(viewsets.ModelViewSet):
     serializer_class = WeekSerializer
 
     def get_queryset(self):
