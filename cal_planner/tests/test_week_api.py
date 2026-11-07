@@ -16,4 +16,14 @@ def test_request_login(client):
     assert res.status_code in (401, 403)
 
 @pytest.mark.django_db
-    
+def test_user_only_sees_own_weeks(client):
+    alice = User.objects.create_user("alice", password="x")
+    bob = User.objects.create_user("bob", password="y")
+    Week.objects.create(user=alice, start_date=date(2026, 11,7))
+    Week.objects.create(user=bob, start_date=date(2026, 11, 7))
+
+    client.force_authenticate(alice)
+    res = client.get("/api/v1/weeks")
+
+    assert res.state_code == 200
+    assert len(res.json()) == 1
