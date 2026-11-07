@@ -12,7 +12,7 @@ def client():
 
 @pytest.mark.django_db
 def test_request_login(client):
-    res = client.get("/api/v1/weeks")
+    res = client.get("/api/v1/weeks/")
     assert res.status_code in (401, 403)
 
 @pytest.mark.django_db
@@ -23,7 +23,7 @@ def test_user_only_sees_own_weeks(client):
     Week.objects.create(user=bob, start_date=date(2026, 11, 7))
 
     client.force_authenticate(alice)
-    res = client.get("/api/v1/weeks")
+    res = client.get("/api/v1/weeks/")
 
-    assert res.state_code == 200
+    assert res.status_code == 200
     assert len(res.json()) == 1
