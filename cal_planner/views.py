@@ -17,7 +17,10 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
     def get_queryset(self):
-        return Task.objects.filter(user=self.request.user)
-    
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        qs = Task.objects.filter(week__user=self.request.user)
+        week_id = self.request.query_params.get("week")
+        if week_id:
+            qs = qs.filter(week_id=week_id)
+        return qs
+
+class 

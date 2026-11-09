@@ -49,10 +49,10 @@ def test_can_create_task_in_own_week(client, alice_week):
 
 @pytest.mark.django_db
 def test_user_only_sees_own_tasks(client, alice_week):
-    bob = User.objects.create_user("bob",password="x")
+    bob = User.objects.create_user("bob",password="y")
     bob_week = Week.objects.create(user=bob, start_date=date(2026, 11, 2))
     Task.objects.create(week=alice_week, name="A", target_minutes=60)
-    Task.objects.create(week=bob_week, name="B", target_minute=60)
+    Task.objects.create(week=bob_week, name="B", target_minutes=60)
 
     client.force_authenticate(alice_week.user)
     res = client.get(reverse("task-list"))
