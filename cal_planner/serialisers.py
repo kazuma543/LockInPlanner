@@ -1,15 +1,20 @@
+from django import forms
 from rest_framework import serializers
-from .models import Week, Task, PlannedBlock
+from .models import Week, Task, PlannedBlock, ActualLog
 from .services import find_overlapping_blocks
+
 class WeekSerializer(serializers.ModelSerializer):
     class Meta:
         model = Week
         fields = ["id", "start_date","goal"]
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}), 
+        }
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ["id", "week", "name","target_minutes"]
+        fields = ["week", "name","target_minutes"]
 
     def get_fields(self):
         fields = super().get_fields()
@@ -21,7 +26,7 @@ class TaskSerializer(serializers.ModelSerializer):
 class PlannedBlockSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlannedBlock
-        fields = ["id", "task", "start_time", "end_time"]
+        fields = [ "task", "start_time", "end_time"]
     
     def get_fields(self):
         fields = super().get_fields()
@@ -43,3 +48,15 @@ def validate(self, data):
     if find_overlapping_blocks(user, start, end, exclude_id).exist():
         raise serializers.ValidationError("This block is overlapping with an existing block.")
     return data
+
+class ActualLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActualLog
+        fields = [ "task", "start_time", "end_time", "note", "focus"]
+    
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            fields["task"].queryset = Task.objects.filter(week__user=request.user)
+        return fields

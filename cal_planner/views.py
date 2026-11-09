@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Week, Task, PlannedBlock
-from .serialisers import WeekSerializer, TaskSerializer, PlannedBlockSerializer
+from .models import Week, Task, PlannedBlock, ActualLog
+from .serialisers import WeekSerializer, TaskSerializer, PlannedBlockSerializer, ActualLogSerializer
 # Create your views here.
 
 class WeekViewSet(viewsets.ModelViewSet):
@@ -28,6 +28,16 @@ class PlannedBlockViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = PlannedBlock.objects.filter(task__week__user=self.request.user)
+        task_id = self.request.query_params.get("task")
+        if task_id:
+            qs = qs.filter(task_id=task_id)
+        return qs
+    
+class ActualLogViewSet(viewsets.ModelViewSet):
+    serializer_class = ActualLogSerializer
+
+    def get_queryset(self):
+        qs = ActualLog.objects.filter(task__week__user=self.request.user)
         task_id = self.request.query_params.get("task")
         if task_id:
             qs = qs.filter(task_id=task_id)

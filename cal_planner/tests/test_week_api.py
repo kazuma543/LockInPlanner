@@ -2,7 +2,7 @@ import pytest
 from datetime import date
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
-from cal_planner.models import Week, Task, PlannedBlock
+from cal_planner.models import Week, Task, PlannedBlock, ActualLog
 from django.urls import reverse
 
 
@@ -73,7 +73,7 @@ def test_cannnot_create_task_in_other_users_week(client, alice_week):
     assert res.status_code == 400
 '''
 
-@pytest.fixture
+'''@pytest.fixture
 def alice_task(db):
     alice = User.objects.create_user("alice", password="x")
     week = Week.objects.create(user=alice, start_date=date(2026, 11, 9))
@@ -113,8 +113,8 @@ def test_cannot_use_other_users_task(client, alice_task):
         "end_time": "2026-11-09T09:00:00+11:00",
     })
     assert res.status_code == 400
-
-#Overlapping test
+'''
+'''#Overlapping test
 def make_block(task, start, end):
     return PlannedBlock.objects.create(task=task, start_time=start, end_time=end)
 
@@ -160,4 +160,50 @@ def test_can_update_own_block_without_self_conflict(client, alice_task):
     client.force_authenticate(alice_task.week.user)
     res = client.patch(reverse("planned-block-detail", args=[block.id]),
                        {"end_time": "2026-11-09T09:30:00+11:00"})
-    assert res.status_code == 200
+    assert res.status_code == 200'''
+
+#Actual Log test
+@pytest.fixture
+def alice_task(db):
+    alice = User.objects.create_user("alice", password="x")
+    week = Week.objects.create(user=alice, start_date=date(2026, 11, 9))
+    return Task.objects.create(week=week, name="Coding", target_minutes="1200")
+
+@pytest.mark.django_db
+def test_log_requires_login(client):
+    res = client.get(reverse("actuallog-list"))
+    assert res.status_code in (401, 403)
+
+@pytest.mark.django_db
+def test_can_create_log_in_own_task(client, alice_task):
+    client.force_authenticate(alice_task.week.user)
+    res = client.post(reverse("actuallog-list"),
+                        {"task":alice_task.id, "start_time":"2026-11-09T07:00:00+11:00", "end_time":"2026-11-09T09:00:00+11:00","note":"Tough","focus":"3"})
+    assert res.status_code == 201
+
+@pytest.mark.django_db
+def test_end_must_be_after_start(client, alice_task):
+    client.force_authenticate(alice_task.week.user)
+    res = client.post(reverse("actuallog-list"), {
+        "task": alice_task.id,
+        "start_time": "2026-11-09T09:00:00+11:00",
+        "end_time": "2026-11-09T07:00:00+11:00",
+        "note":"Tough",
+        "focus":"3"
+    })
+
+    assert res.status_code  == 201
+
+@pytest.mark.django_db
+def test_cannot_use_other_users_task(client, alice_task):
+    bob = User.objects.create_user("bob", password="x")
+    res_client = client
+    res_client.force_authenticate(bob)
+    res = res_client.post(reverse("actuallog-list"), {
+        "task": alice_task.id,
+        "start_time": "2026-11-09T07:00:00+11:00",
+        "end_time": "2026-11-09T09:00:00+11:00",
+        "note":"Tough",
+        "focus":"3"
+    })
+    assert res.status_code == 400

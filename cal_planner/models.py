@@ -4,13 +4,17 @@ from django.conf import settings
 
 class Week(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="weeks")
-    start_date = models.DateField()
+    start_date = models.DateField(unique=True)
     goal = models.CharField(max_length=200, blank=True)
+    def __str__(self):
+        return str(self.start_date)
 
 class Task(models.Model):
     week=models.ForeignKey(Week, on_delete=models.CASCADE, related_name="tasks")
     name = models.CharField(max_length=100)
     target_minutes=models.PositiveIntegerField()
+    def __str__(self):
+        return f"Goal {self.name} of Week{self.week}"
 
 class PlannedBlock(models.Model):
     "An event the user want to put"
