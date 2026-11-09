@@ -35,19 +35,19 @@ class PlannedBlockSerializer(serializers.ModelSerializer):
             fields["task"].queryset = Task.objects.filter(week__user=request.user)
         return fields
     
-def validate(self, data):
-    start = data.get("start_time", getattr(self.instance,"start_time", None))
-    end = data.get("end_time",getattr(self.instance, "end_tiem", None))
+    def validate(self, data):
+        start = data.get("start_time", getattr(self.instance,"start_time", None))
+        end = data.get("end_time",getattr(self.instance, "end_tiem", None))
 
-    if start < end:
-        raise serializers.ValidationError("End time must be after start time")
-    
-    user = self.context["request"].user
-    exclude_id = self.instance.pk if self.instance else None
+        if start < end:
+            raise serializers.ValidationError("End time must be after start time")
+        
+        user = self.context["request"].user
+        exclude_id = self.instance.pk if self.instance else None
 
-    if find_overlapping_blocks(user, start, end, exclude_id).exist():
-        raise serializers.ValidationError("This block is overlapping with an existing block.")
-    return data
+        if find_overlapping_blocks(user, start, end, exclude_id).exist():
+            raise serializers.ValidationError("This block is overlapping with an existing block.")
+        return data
 
 class ActualLogSerializer(serializers.ModelSerializer):
     class Meta:
@@ -60,3 +60,11 @@ class ActualLogSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             fields["task"].queryset = Task.objects.filter(week__user=request.user)
         return fields
+    
+    def validate(self, data):
+        start = data.get("start_time", getattr(self.instance, "start_time", None))
+        end = data.get("end_time", getattr(self.instance, "end_time",None))
+
+        if end<=start:
+            raise serializers.ValidationError("Start time must be before end time.")
+        return data

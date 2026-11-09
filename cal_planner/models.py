@@ -27,7 +27,8 @@ class ActualLog(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     note = models.TextField(blank=True)
-    focus = models.PositiveSmallIntegerField()
+    focus_score = ([i, str(i)] for i in range(0,6))
+    focus = models.PositiveSmallIntegerField(choices=focus_score)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
