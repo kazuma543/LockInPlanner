@@ -2,6 +2,8 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Week, Task, PlannedBlock, ActualLog
 from .serialisers import WeekSerializer, TaskSerializer, PlannedBlockSerializer, ActualLogSerializer
+from .services import calculate_achievement_percentage
+
 # Create your views here.
 
 class WeekViewSet(viewsets.ModelViewSet):
@@ -42,3 +44,4 @@ class ActualLogViewSet(viewsets.ModelViewSet):
         if task_id:
             qs = qs.filter(task_id=task_id)
         return qs
+    
