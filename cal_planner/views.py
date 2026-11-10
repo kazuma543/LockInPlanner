@@ -1,8 +1,11 @@
 from django.shortcuts import render
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework import viewsets
 from .models import Week, Task, PlannedBlock, ActualLog
 from .serialisers import WeekSerializer, TaskSerializer, PlannedBlockSerializer, ActualLogSerializer
 from .services import calculate_achievement_percentage
+
 
 # Create your views here.
 
@@ -14,6 +17,16 @@ class WeekViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+    @action(detail=True, methods=['get'], url_path='achievement-percentages')
+    def get_achievement_percentage(self, request, pk=None):
+        
+        week = self.get_object()
+        
+    
+        data = calculate_achievement_percentage(week=week)
+        return Response(data)
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer

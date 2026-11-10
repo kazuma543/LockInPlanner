@@ -12,8 +12,9 @@ def find_overlapping_blocks(user, start, end, exclude_id=None):
         qs =qs.exclude(pk=exclude_id)
     return qs
 
-def calculate_plannned_time_amout(self):
-    task_summaries = PlannedBlock.objects.annotate(
+def calculate_planned_time_amount(week):
+    task_summarie = PlannedBlock.objects.filter(task__week=week
+                                                ).annotate(
         planned_time = ExpressionWrapper(
             F('end_time')-F('start_time'),
             output_field=DurationField()
@@ -21,11 +22,12 @@ def calculate_plannned_time_amout(self):
     ).values('task').annotate(
         total_planned_time=Sum('planned_time')
     )
-    return task_summaries
+    return task_summarie
 
 
-def calculate_actual_time_amout(self):
-    task_summaries = ActualLog.objects.annotate(
+def calculate_actual_time_amount(week):
+    task_summaries = ActualLog.objects.filter(task__week=week
+                                              ).annotate(
         actual_time = ExpressionWrapper(
             F('end_time')-F('start_time'),
             output_field=DurationField()
@@ -35,9 +37,9 @@ def calculate_actual_time_amout(self):
     )
     return task_summaries
 
-def calculate_achievement_percentage(self):
-    planned_data=self.calculate_planned_time_amount()
-    actual_data = self.calculate_actual_time_amout()
+def calculate_achievement_percentage(week):
+    planned_data=calculate_planned_time_amount(week)
+    actual_data =calculate_actual_time_amount(week)
 
     merged_tasks = defaultdict(lambda: {'planned': None, 'actual': None})
     for item in planned_data:

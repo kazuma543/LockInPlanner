@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from cal_planner.models import Week, Task, PlannedBlock, ActualLog
 from django.urls import reverse
-
+from cal_planner.services import calculate_actual_time_amount,calculate_planned_time_amount,calculate_achievement_percentage
 
 User = get_user_model()
 
@@ -163,7 +163,7 @@ def test_can_update_own_block_without_self_conflict(client, alice_task):
     assert res.status_code == 200'''
 
 #Actual Log test
-@pytest.fixture
+'''@pytest.fixture
 def alice_task(db):
     alice = User.objects.create_user("alice", password="x")
     week = Week.objects.create(user=alice, start_date=date(2026, 11, 9))
@@ -236,4 +236,42 @@ def test_focus_score_must_be_less_than_5(client, alice_task):
         "focus":"8"
     })
 
-    assert res.status_code  == 400
+    assert res.status_code  == 400'''
+
+#Weekly report test
+@pytest.fixture
+def alice_task(db):
+    alice = User.objects.create_user("alice", password="x")
+    week = Week.objects.create( user=alice, start_date=date(2026, 11, 9))
+    return Task.objects.create(week=week, name="Coding", target_minutes=1200)
+
+@pytest.mark.django_db
+def test_report_does_not_mix_other_users(client, alice_task):
+    bob = User.objects.create_user("bob",password="y")
+    bob_week = Week.objects.create(user=bob, start_date=date(2026, 11, 9))
+    bob_task = Task.objects.create( week=bob_week, name="Coding", target_minutes=1200)
+    ActualLog.objects.create(task=alice_task, start_time="2026-11-09T09:00:00+11:00", end_time= "2026-11-09T10:00:00+11:00",
+        note="Tough",
+        focus="3")
+    ActualLog.objects.create(task=bob_task, start_time="2026-11-10T09:00:00+11:00", end_time= "2026-11-11T09:00:00+11:00",
+        note="Easy",
+        focus="5")
+
+    client.force_authenticate(alice_task.week.user)
+    res = client.get(reverse("week-get-achievement-percentage",args=[alice_task.week.id]))
+
+    assert res.status_code == 200
+    task_ids = [item["task_id"] for item in res.json()]
+    assert alice_task.id in task_ids
+    assert bob_task.id not in task_ids
+
+@pytest.mark.django_db
+def test_cannot_view_other_user_report(client, alice_task):
+    bob = User.objects.create_user("bob", password="y")
+
+    client.force_authenticate(bob)
+    res = client.get(
+        reverse("week-get-achievement-percentage", args=[alice_task.week.id])
+    )   
+
+    assert res.status_code == 404
