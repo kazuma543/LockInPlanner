@@ -13,7 +13,7 @@ def find_overlapping_blocks(user, start, end, exclude_id=None):
     return qs
 
 def calculate_planned_time_amount(week):
-    task_summarie = PlannedBlock.objects.filter(task__week=week
+    task_summaries = PlannedBlock.objects.filter(task__week=week
                                                 ).annotate(
         planned_time = ExpressionWrapper(
             F('end_time')-F('start_time'),
@@ -22,7 +22,7 @@ def calculate_planned_time_amount(week):
     ).values('task').annotate(
         total_planned_time=Sum('planned_time')
     )
-    return task_summarie
+    return task_summaries
 
 
 def calculate_actual_time_amount(week):

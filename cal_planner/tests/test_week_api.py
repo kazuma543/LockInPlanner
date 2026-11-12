@@ -85,7 +85,7 @@ def test_block_requires_login(client):
     assert res.status_code in (401, 403)
 
 @pytest.mark.django_db
-def est_can_create_block_in_own_task(client, alice_task):
+def test_can_create_block_in_own_task(client, alice_task):
     client.force_authenticate(alice_task.week.user)
     res = client.post(reverse("plannedblock-list"),
                         {"task":alice_task.id, "start_time":"2026-11-09T07:00:00+11:00", "end_time":"2026-11-09T09:00:00+11:00"})
@@ -275,3 +275,20 @@ def test_cannot_view_other_user_report(client, alice_task):
     )   
 
     assert res.status_code == 404
+
+@pytest.mark.django_db
+def test_report_does_not_mix_other_task_from_same_user(client, alice_task):
+    week_2 = Week.objects.create(user=alice, start_date=date(2026, 11,16))
+    test_task = Task.objects.create(week=week_2, name="Writing", target_minutes = 300)
+    ActualLog.objects.create(task=test_task, start_time="2026-11-16T09:00:00+11:00", end_time= "2026-11-18T09:00:00+11:00",
+        note="Tough",
+        focus="3")
+    client.force_authenticate(alice_task.week.user)
+    res = client.get(reverse("week-get-achievement-percentage"),
+                        {"task":alice_task.id, "start_time":"2026-11-09T07:00:00+11:00", "end_time":"2026-11-09T09:00:00+11:00"}, 
+                        args=[alice_task.week.user])
+    assert res.status_code == 200
+    task_ids = [item["task_id"] for item in res.json()]
+    assert alice_task.id in task_ids
+    assert test_task.id not in task_ids
+
