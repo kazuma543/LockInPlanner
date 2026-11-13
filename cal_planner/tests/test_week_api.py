@@ -242,7 +242,7 @@ def test_focus_score_must_be_less_than_5(client, alice_task):
 @pytest.fixture
 def alice_task(db):
     alice = User.objects.create_user("alice", password="x")
-    week = Week.objects.create( user=alice, start_date=date(2026, 11, 9))
+    week = Week.objects.create(user=alice, start_date=date(2026, 11, 9))
     return Task.objects.create(week=week, name="Coding", target_minutes=1200)
 
 @pytest.mark.django_db
@@ -278,17 +278,19 @@ def test_cannot_view_other_user_report(client, alice_task):
 
 @pytest.mark.django_db
 def test_report_does_not_mix_other_task_from_same_user(client, alice_task):
-    week_2 = Week.objects.create(user=alice, start_date=date(2026, 11,16))
-    test_task = Task.objects.create(week=week_2, name="Writing", target_minutes = 300)
-    ActualLog.objects.create(task=test_task, start_time="2026-11-16T09:00:00+11:00", end_time= "2026-11-18T09:00:00+11:00",
+    week_2 = Week.objects.create(user=alice_task.week.user, start_date=date(2026, 11,16))
+    other_week_task = Task.objects.create(week=week_2, name="Writing", target_minutes = 300)
+    ActualLog.objects.create(task=other_week_task, start_time="2026-11-16T09:00:00+11:00", end_time= "2026-11-18T09:00:00+11:00",
+        note="Tough",
+        focus="3")
+    ActualLog.objects.create(task=alice_task, start_time="2026-11-09T09:00:00+11:00", end_time= "2026-11-10T09:00:00+11:00",
         note="Tough",
         focus="3")
     client.force_authenticate(alice_task.week.user)
-    res = client.get(reverse("week-get-achievement-percentage"),
-                        {"task":alice_task.id, "start_time":"2026-11-09T07:00:00+11:00", "end_time":"2026-11-09T09:00:00+11:00"}, 
-                        args=[alice_task.week.user])
+    res = client.get(reverse("week-get-achievement-percentage", 
+                        args=[alice_task.week.id]))
     assert res.status_code == 200
     task_ids = [item["task_id"] for item in res.json()]
     assert alice_task.id in task_ids
-    assert test_task.id not in task_ids
+    assert other_week_task.id not in task_ids
 
