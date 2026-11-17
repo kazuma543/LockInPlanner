@@ -1,6 +1,6 @@
-from .models import PlannedBlock, ActualLog
+from .models import Task,PlannedBlock, ActualLog
 from django.db.models import F, Sum, ExpressionWrapper, DurationField
-from collections import defaultdict
+from datetime import timedelta
 
 def find_overlapping_blocks(user, start, end, exclude_id=None):
     qs = PlannedBlock.objects.filter(
@@ -41,26 +41,23 @@ def calculate_achievement_percentage(week):
     planned_data=calculate_planned_time_amount(week)
     actual_data =calculate_actual_time_amount(week)
 
-    merged_tasks = defaultdict(lambda: {'planned': None, 'actual': None})
-    for item in planned_data:
-        task_id = item['task']
-        merged_tasks[task_id]['planned'] = item['total_planned_time']
+    planned_dict = {item['task']: item['total_planned_time'] for item in planned_data}
+    actual_dict = {item['task']: item['total_actual_time'] for item in actual_data}
+    weekly_task = Task.objects.filter(week=week).order_by('id')
     
-    for item in actual_data:
-        task_id = item['task']
-        merged_tasks[task_id]['actual'] = item['total_actual_time']
-
     results = []
-    for task_id, times in merged_tasks.items():
-        planned = times['planned']
-        actual = times['actual']
+    for task in weekly_task:
+        planned = planned_dict.get(task.id, timedelta(0))
+        actual = actual_dict.get(task.id, timedelta(0))
         if planned and actual and planned.total_seconds() > 0:
             percentage = (actual.total_seconds() / planned.total_seconds()) * 100
         else:
             percentage = 0.0 
 
         results.append({
-            'task_id': task_id,
+            'task_id': task.id,
+            'task_name':task.name,
+            'target_minutes':task.target_minutes,
             'total_planned_time': planned,
             'total_actual_time': actual,
             'percentage': round(percentage, 2)  

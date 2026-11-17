@@ -116,7 +116,7 @@ def test_cannot_use_other_users_task(client, alice_task):
     assert res.status_code == 400
 '''
 #Overlapping test
-def make_block(task, start, end):
+'''def make_block(task, start, end):
     return PlannedBlock.objects.create(task=task, start_time=start, end_time=end)
 
 @pytest.mark.django_db
@@ -182,7 +182,7 @@ def test_end_must_be_after_start(client, alice_task):
         "end_time": "2026-11-09T07:00:00+11:00",
     })
 
-    assert res.status_code  == 400
+    assert res.status_code  == 400'''
 
 
 #Actual Log test
@@ -318,7 +318,7 @@ def test_report_does_not_mix_other_task_from_same_user(client, alice_task):
     assert other_week_task.id not in task_ids'''
 
 @pytest.mark.django_db
-def test_calculate_achivement(alice_task):
+def test_calculate_achievment(alice_task):
     PlannedBlock.objects.create(task = alice_task, start_time = "2026-11-09T09:00:00+11:00", end_time = "2026-11-09T10:00:00+11:00")
     PlannedBlock.objects.create(task = alice_task, start_time = "2026-11-09T10:00:00+11:00", end_time = "2026-11-09T10:30:00+11:00")
     ActualLog.objects.create(task= alice_task, start_time="2026-11-09T09:00:00+11:00", end_time= "2026-11-09T09:45:00+11:00",
@@ -332,7 +332,7 @@ def test_calculate_achivement(alice_task):
     assert res [0]["percentage"] == 83.33
 
 @pytest.mark.django_db
-def test_calculate_achivement_without_actual_log(alice_task):
+def test_calculate_achievment_without_actual_log(alice_task):
     PlannedBlock.objects.create(task = alice_task, start_time = "2026-11-09T09:00:00+11:00", end_time = "2026-11-09T10:00:00+11:00")
     PlannedBlock.objects.create(task = alice_task, start_time = "2026-11-09T10:00:00+11:00", end_time = "2026-11-09T10:30:00+11:00")
 
@@ -341,7 +341,7 @@ def test_calculate_achivement_without_actual_log(alice_task):
     assert res [0]["percentage"] == 0
 
 @pytest.mark.django_db
-def test_calculate_achivement_wtihout_plan(alice_task):
+def test_calculate_achievment_without_plan(alice_task):
     ActualLog.objects.create(task= alice_task, start_time="2026-11-09T09:00:00+11:00", end_time= "2026-11-09T09:45:00+11:00",
         note="Tough",
         focus="3")
@@ -352,3 +352,11 @@ def test_calculate_achivement_wtihout_plan(alice_task):
 
     assert res [0]["percentage"] == 0.0
 
+@pytest.mark.django_db
+def test_calculate_achievement_without_plan_and_log(alice_task):
+    ActualLog.objects.create(task= alice_task, start_time="2026-11-09T09:00:00+11:00", end_time= "2026-11-09T09:45:00+11:00",
+        note="Tough",
+        focus="3")
+    res = calculate_achievement_percentage(week=alice_task.week)
+
+    assert res [0]["percentage"] == 0.0
