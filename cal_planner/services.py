@@ -5,8 +5,8 @@ from collections import defaultdict
 def find_overlapping_blocks(user, start, end, exclude_id=None):
     qs = PlannedBlock.objects.filter(
         task__week__user = user,
-        start__time__lt = end,
-        end__time__gt = start,
+        start_time__lt = end,
+        end_time__gt = start,
     )
     if exclude_id is not None:
         qs =qs.exclude(pk=exclude_id)

@@ -37,15 +37,15 @@ class PlannedBlockSerializer(serializers.ModelSerializer):
     
     def validate(self, data):
         start = data.get("start_time", getattr(self.instance,"start_time", None))
-        end = data.get("end_time",getattr(self.instance, "end_tiem", None))
+        end = data.get("end_time",getattr(self.instance, "end_time", None))
 
-        if start < end:
+        if end < start:
             raise serializers.ValidationError("End time must be after start time")
         
         user = self.context["request"].user
         exclude_id = self.instance.pk if self.instance else None
 
-        if find_overlapping_blocks(user, start, end, exclude_id).exist():
+        if find_overlapping_blocks(user, start, end, exclude_id).exists():
             raise serializers.ValidationError("This block is overlapping with an existing block.")
         return data
 

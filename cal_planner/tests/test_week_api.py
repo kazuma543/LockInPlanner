@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from cal_planner.models import Week, Task, PlannedBlock, ActualLog
 from django.urls import reverse
-from cal_planner.services import calculate_actual_time_amount,calculate_planned_time_amount,calculate_achievement_percentage
-
+from cal_planner.services import find_overlapping_blocks, calculate_actual_time_amount,calculate_planned_time_amount,calculate_achievement_percentage
+from unittest.mock import patch
 
 User = get_user_model()
 
@@ -116,14 +116,14 @@ def test_cannot_use_other_users_task(client, alice_task):
     assert res.status_code == 400
 '''
 #Overlapping test
-'''def make_block(task, start, end):
+def make_block(task, start, end):
     return PlannedBlock.objects.create(task=task, start_time=start, end_time=end)
 
 @pytest.mark.django_db
 def test_overlapping_block_rejected(client, alice_task):
     make_block(alice_task, "2026-11-09T07:00:00+11:00", "2026-11-09T09:00:00+11:00")
     client.force_authenticate(alice_task.week.user)
-    res = client.post(reverse("planned-block-list"), {
+    res = client.post(reverse("plannedblock-list"), {
         "task": alice_task.id,
         "start_time": "2026-11-09T08:00:00+11:00",
         "end_time": "2026-11-09T10:00:00+11:00",
@@ -134,12 +134,14 @@ def test_overlapping_block_rejected(client, alice_task):
 def test_touching_blocks_allowed(client, alice_task):
     make_block(alice_task, "2026-11-09T07:00:00+11:00", "2026-11-09T09:00:00+11:00")
     client.force_authenticate(alice_task.week.user)
-    res = client.post(reverse("planned-block-list"), {
+    res = client.post(reverse("plannedblock-list"), {
         "task": alice_task.id,
         "start_time": "2026-11-09T09:00:00+11:00",
         "end_time": "2026-11-09T10:00:00+11:00",
     })
     assert res.status_code == 201
+
+
 
 @pytest.mark.django_db
 def test_other_users_blocks_do_not_conflict(client, alice_task):
@@ -148,7 +150,7 @@ def test_other_users_blocks_do_not_conflict(client, alice_task):
     bob_week = Week.objects.create(user=bob, start_date=date(2026, 11, 9))
     bob_task = Task.objects.create(week=bob_week, name="Coding", target_minutes=60)
     client.force_authenticate(bob)
-    res = client.post(reverse("planned-block-list"), {
+    res = client.post(reverse("plannedblock-list"), {
         "task": bob_task.id,
         "start_time": "2026-11-09T07:00:00+11:00",
         "end_time": "2026-11-09T09:00:00+11:00",
@@ -159,9 +161,29 @@ def test_other_users_blocks_do_not_conflict(client, alice_task):
 def test_can_update_own_block_without_self_conflict(client, alice_task):
     block = make_block(alice_task, "2026-11-09T07:00:00+11:00", "2026-11-09T09:00:00+11:00")
     client.force_authenticate(alice_task.week.user)
-    res = client.patch(reverse("planned-block-detail", args=[block.id]),
+    res = client.patch(reverse("plannedblock-detail", args=[block.id]),
                        {"end_time": "2026-11-09T09:30:00+11:00"})
-    assert res.status_code == 200'''
+    assert res.status_code == 200
+
+@pytest.mark.django_db
+def test_send_only_start_time(client, alice_task):
+    block = make_block(alice_task, "2026-11-09T07:00:00+11:00", "2026-11-09T09:00:00+11:00")
+    client.force_authenticate(alice_task.week.user)
+    res = client.patch(reverse("plannedblock-detail", args=[block.id]),
+                       {"start_time": "2026-11-09T06:00:00+11:00"})
+    assert res.status_code == 200
+    
+@pytest.mark.django_db
+def test_end_must_be_after_start(client, alice_task):
+    client.force_authenticate(alice_task.week.user)
+    res = client.post(reverse("plannedblock-list"), {
+        "task": alice_task.id,
+        "start_time": "2026-11-09T09:00:00+11:00",
+        "end_time": "2026-11-09T07:00:00+11:00",
+    })
+
+    assert res.status_code  == 400
+
 
 #Actual Log test
 '''@pytest.fixture
@@ -329,3 +351,4 @@ def test_calculate_achivement_wtihout_plan(alice_task):
     res = calculate_achievement_percentage(week=alice_task.week)
 
     assert res [0]["percentage"] == 0.0
+
