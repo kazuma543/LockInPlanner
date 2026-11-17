@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 
     #Django REST Framework
     'rest_framework',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -140,4 +141,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES":[
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "DEFAULT_SCHEMA_CLASS":"drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTING = {
+    "TITLE":"CLDA Planner API",
+    "DESCRIPTION":"Weekly planner API: plan time per task and compare it with actual logs.",
+    "VERSION": "1.0.0",
 }

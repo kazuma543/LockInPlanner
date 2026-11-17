@@ -11,7 +11,7 @@ from .services import calculate_achievement_percentage
 
 class WeekViewSet(viewsets.ModelViewSet):
     serializer_class = WeekSerializer
-
+    queryset = Week.objects.none()
     def get_queryset(self):
         return Week.objects.filter(user=self.request.user)
     
@@ -30,7 +30,7 @@ class WeekViewSet(viewsets.ModelViewSet):
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
-
+    queryset = Task.objects.none()
     def get_queryset(self):
         qs = Task.objects.filter(week__user=self.request.user)
         week_id = self.request.query_params.get("week")
@@ -40,7 +40,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 class PlannedBlockViewSet(viewsets.ModelViewSet):
     serializer_class = PlannedBlockSerializer
-
+    queryset = PlannedBlock.objects.none()
     def get_queryset(self):
         qs = PlannedBlock.objects.filter(task__week__user=self.request.user)
         task_id = self.request.query_params.get("task")
@@ -50,7 +50,7 @@ class PlannedBlockViewSet(viewsets.ModelViewSet):
     
 class ActualLogViewSet(viewsets.ModelViewSet):
     serializer_class = ActualLogSerializer
-
+    queryset = ActualLog.objects.none()
     def get_queryset(self):
         qs = ActualLog.objects.filter(task__week__user=self.request.user)
         task_id = self.request.query_params.get("task")
