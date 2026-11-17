@@ -20,7 +20,7 @@ def calculate_planned_time_amount(week):
             output_field=DurationField()
         )
     ).values('task').annotate(
-        total_planned_time=Sum('planned_time')
+        total_planned_minutes=Sum('planned_time')
     )
     return task_summaries
 
@@ -33,16 +33,16 @@ def calculate_actual_time_amount(week):
             output_field=DurationField()
         )
     ).values('task').annotate(
-        total_actual_time=Sum('actual_time')
+        total_actual_minutes=Sum('actual_time')
     )
     return task_summaries
 
 def calculate_achievement_percentage(week):
     planned_data=calculate_planned_time_amount(week)
     actual_data =calculate_actual_time_amount(week)
-
-    planned_dict = {item['task']: item['total_planned_time'] for item in planned_data}
-    actual_dict = {item['task']: item['total_actual_time'] for item in actual_data}
+    
+    planned_dict = {item['task']: item['total_planned_minutes'] for item in planned_data}
+    actual_dict = {item['task']: item['total_actual_minutes'] for item in actual_data}
     weekly_task = Task.objects.filter(week=week).order_by('id')
     
     results = []
@@ -52,14 +52,14 @@ def calculate_achievement_percentage(week):
         if planned and actual and planned.total_seconds() > 0:
             percentage = (actual.total_seconds() / planned.total_seconds()) * 100
         else:
-            percentage = 0.0 
+            percentage = 0.0
 
         results.append({
             'task_id': task.id,
             'task_name':task.name,
             'target_minutes':task.target_minutes,
-            'total_planned_time': planned,
-            'total_actual_time': actual,
+            'total_planned_minutes': planned.total_seconds()/ 60,
+            'total_actual_minutes': actual.total_seconds()/ 60,
             'percentage': round(percentage, 2)  
         })
 

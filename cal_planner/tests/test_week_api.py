@@ -329,6 +329,8 @@ def test_calculate_achievment(alice_task):
         focus="3")
     res = calculate_achievement_percentage(week=alice_task.week)
 
+    assert res [0]["total_planned_minutes"] == 90
+    assert res [0]["total_actual_minutes"] == 75
     assert res [0]["percentage"] == 83.33
 
 @pytest.mark.django_db
