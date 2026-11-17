@@ -1,0 +1,41 @@
+name: CI
+
+on: 
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgre:17
+        env: 
+          POSTGRES_DB: clda
+          POSTGRE_USER: clda
+          POSTGRE_PASSWORD: ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U clda"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    
+    env:
+      DB_NAME: clda
+      DB_USER: clda
+      DB_PASS: ci_password
+      DB_HOST: localhost
+      DB_PORT: 5432
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: pytest -v
