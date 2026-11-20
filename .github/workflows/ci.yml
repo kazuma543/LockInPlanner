@@ -14,8 +14,8 @@ jobs:
         image: postgres:17
         env: 
           POSTGRES_DB: clda
-          POSTGRE_USER: clda
-          POSTGRE_PASSWORD: ci_password
+          POSTGRES_USER: clda
+          POSTGRES_PASSWORD: ci_password
         ports:
           - 5432:5432
         options: >-
