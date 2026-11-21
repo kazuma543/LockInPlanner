@@ -14,12 +14,13 @@ A calendar app with a task list and a log page to track the original plan and re
 
 ## 3. Tech Stack & Rationale
 
-*   **Language:** Python 3.14
+*   **Language:** Python 3.13
 *   **Framework:** Django 5.2 LTS. It includes the ORM, authentication and an admin site, so I can focus on the business logic.
 *   **API:** Django REST Framework + drf-spectacular. DRF is the standard way to build REST APIs in Django, serializers handle validation, and Swagger docs are generated automatically.
 *   **Database:** PostgreSQL (via Docker). It is closer to production than SQLite, and the same database runs locally and in CI.
 *   **Testing:** pytest + pytest-django, covering the business rules (time budget limit, overlapping blocks, weekly report).
 *   **CI:** GitHub Actions, running lint (ruff) and tests on every push.
+            ![CI](https://github.com/kazuma543/LockInPlanner/actions/workflows/ci.yml/badge.svg)
 *   **UI (planned):** Django templates + Bootstrap, added after the API is complete.
 *   **Other libraries:** psycopg (PostgreSQL driver), python-dotenv (environment variables), gunicorn (production server in Docker).
 
@@ -28,8 +29,8 @@ A calendar app with a task list and a log page to track the original plan and re
 ```text
 CLDA/
 ├── manage.py
-├── config/                 # Project settings and root URLs
-├── planner/                # Main app
+├── cl_project/                 # Project settings and root URLs
+├── cal_planner/                # Main app
 │   ├── models.py           # Week, Task, PlannedBlock, ActualLog
 │   ├── serializers.py      # Validation and API representation
 │   ├── views.py            # API endpoints
