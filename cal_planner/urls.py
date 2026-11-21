@@ -1,5 +1,6 @@
 from rest_framework.routers import DefaultRouter
-from .views import WeekViewSet, TaskViewSet, PlannedBlockViewSet, ActualLogViewSet
+
+from .views import ActualLogViewSet, PlannedBlockViewSet, TaskViewSet, WeekViewSet
 
 router = DefaultRouter()
 router.register("weeks", WeekViewSet, basename="week")

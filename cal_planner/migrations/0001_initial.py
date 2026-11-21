@@ -7,8 +7,7 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
@@ -21,4 +20,4 @@ class Migration(migrations.Migration):
                 ('end_time', models.DateTimeField()),
             ],
         ),
-    ]
+            ]

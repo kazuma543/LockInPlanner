@@ -1,7 +1,9 @@
 from django import forms
 from rest_framework import serializers
-from .models import Week, Task, PlannedBlock, ActualLog
+
+from .models import ActualLog, PlannedBlock, Task, Week
 from .services import find_overlapping_blocks
+
 
 class WeekSerializer(serializers.ModelSerializer):
     class Meta:

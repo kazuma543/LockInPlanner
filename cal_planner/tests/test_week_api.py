@@ -1,11 +1,11 @@
-import pytest 
-from datetime import date, datetime
+from datetime import date
+
+import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
-from cal_planner.models import Week, Task, PlannedBlock, ActualLog
-from django.urls import reverse
-from cal_planner.services import find_overlapping_blocks, calculate_actual_time_amount,calculate_planned_time_amount,calculate_achievement_percentage
-from unittest.mock import patch
+
+from cal_planner.models import ActualLog, PlannedBlock, Task, Week
+from cal_planner.services import calculate_achievement_percentage
 
 User = get_user_model()
 

@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Week, Task, PlannedBlock, ActualLog
+
+from .models import ActualLog, PlannedBlock, Task, Week
 
 admin.site.register(Week)
 admin.site.register(Task)

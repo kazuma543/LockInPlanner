@@ -1,6 +1,7 @@
-from django.db import models
-from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db import models
+
 
 class Week(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="weeks")
@@ -27,7 +28,7 @@ class ActualLog(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     note = models.TextField(blank=True)
-    focus_score = ([i, str(i)] for i in range(0,6))
+    focus_score = ([i, str(i)] for i in range(6))
     focus = models.PositiveSmallIntegerField(choices=focus_score)
 
     def __init__(self, *args, **kwargs):

@@ -1,6 +1,9 @@
-from .models import Task,PlannedBlock, ActualLog
-from django.db.models import F, Sum, ExpressionWrapper, DurationField
 from datetime import timedelta
+
+from django.db.models import DurationField, ExpressionWrapper, F, Sum
+
+from .models import ActualLog, PlannedBlock, Task
+
 
 def find_overlapping_blocks(user, start, end, exclude_id=None):
     qs = PlannedBlock.objects.filter(
